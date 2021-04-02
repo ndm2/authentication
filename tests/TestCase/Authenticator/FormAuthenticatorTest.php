@@ -141,7 +141,7 @@ class FormAuthenticatorTest extends TestCase
 
         $this->assertInstanceOf(Result::class, $result);
         $this->assertSame(Result::FAILURE_OTHER, $result->getStatus());
-        $this->assertEquals([0 => 'Login URL `http://localhost/users/does-not-match` did not match `/users/login`.'], $result->getErrors());
+        $this->assertEquals([0 => 'Login URL `/users/does-not-match` did not match `/users/login`.'], $result->getErrors());
     }
 
     /**
@@ -173,7 +173,7 @@ class FormAuthenticatorTest extends TestCase
 
         $this->assertInstanceOf(Result::class, $result);
         $this->assertSame(Result::FAILURE_OTHER, $result->getStatus());
-        $this->assertEquals([0 => 'Login URL `http://localhost/users/does-not-match` did not match `/en/users/login` or `/de/users/login`.'], $result->getErrors());
+        $this->assertEquals([0 => 'Login URL `/users/does-not-match` did not match `/en/users/login` or `/de/users/login`.'], $result->getErrors());
     }
 
     /**
@@ -206,7 +206,7 @@ class FormAuthenticatorTest extends TestCase
 
         $this->assertInstanceOf(Result::class, $result);
         $this->assertSame(Result::FAILURE_OTHER, $result->getStatus());
-        $this->assertEquals([0 => 'Login URL `http://localhost/base/users/login` did not match `/users/login`.'], $result->getErrors());
+        $this->assertEquals([0 => 'Login URL `/base/users/login` did not match `/users/login`.'], $result->getErrors());
     }
 
     /**
@@ -404,6 +404,35 @@ class FormAuthenticatorTest extends TestCase
         $this->assertInstanceOf(Result::class, $result);
         $this->assertSame(Result::SUCCESS, $result->getStatus());
         $this->assertEquals([], $result->getErrors());
+    }
+
+    /**
+     * testFullLoginUrlFailureWithoutCheckFullUrlOption
+     *
+     * @return void
+     */
+    public function testFullLoginUrlFailureWithoutCheckFullUrlOption()
+    {
+        $identifiers = new IdentifierCollection([
+            'Authentication.Password',
+        ]);
+
+        $request = ServerRequestFactory::fromGlobals(
+            ['REQUEST_URI' => '/users/login'],
+            [],
+            ['username' => 'mariano', 'password' => 'password']
+        );
+        $response = new Response();
+
+        $form = new FormAuthenticator($identifiers, [
+            'loginUrl' => 'http://localhost/users/login',
+        ]);
+
+        $result = $form->authenticate($request, $response);
+
+        $this->assertInstanceOf(Result::class, $result);
+        $this->assertSame(Result::FAILURE_OTHER, $result->getStatus());
+        $this->assertEquals([0 => 'Login URL `/users/login` did not match `http://localhost/users/login`.'], $result->getErrors());
     }
 
     /**

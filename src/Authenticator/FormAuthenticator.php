@@ -18,6 +18,7 @@ namespace Authentication\Authenticator;
 
 use Authentication\Identifier\IdentifierInterface;
 use Authentication\UrlChecker\UrlCheckerTrait;
+use Cake\Utility\Hash;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
@@ -89,10 +90,17 @@ class FormAuthenticator extends AbstractAuthenticator
             $uri = $uri->withPath((string)$base . $uri->getPath());
         }
 
+        $checkFullUrl = Hash::get((array)$this->getConfig('urlChecker'), 'checkFullUrl', false);
+        if ($checkFullUrl) {
+            $uri = (string)$uri;
+        } else {
+            $uri = $uri->getPath();
+        }
+
         $errors = [
             sprintf(
                 'Login URL `%s` did not match `%s`.',
-                (string)$uri,
+                $uri,
                 implode('` or `', (array)$this->getConfig('loginUrl'))
             ),
         ];
